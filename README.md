@@ -1,12 +1,8 @@
 # Asignación de Vínculos Laborales
 
-## Nombre del proyecto
-
-**Asignación de Vínculos Laborales**
-
 ## Descripción
 
-Aplicación destinada a la gestión de los vínculos laborales de los empleados.
+Aplicación móvil destinada a la gestión de los vínculos laborales de los empleados.
 
 El sistema permite consultar empleados, visualizar el vínculo laboral asociado, asignar nuevos vínculos y realizar la anulación de vínculos existentes.
 
@@ -25,10 +21,10 @@ El grupo cuenta con **2 integrantes**, por lo que el alcance mínimo esperado pa
 
 | # | Feature | Estado actual |
 |---|---|---|
-| 1 | Listar empleados con sus vínculos laborales | Implementado |
-| 2 | Asignar vínculo laboral a empleado | Implementado |
-| 3 | Anular vínculo laboral del empleado | Implementado |
-| 4 | Modificar vínculo laboral del empleado | Pendiente |
+| 1 | Listar empleados con sus vínculos laborales | ✅ Implementado |
+| 2 | Asignar vínculo laboral a empleado | ✅ Implementado |
+| 3 | Anular vínculo laboral del empleado | ✅ Implementado |
+| 4 | Modificar vínculo laboral del empleado | ⏳ Pendiente |
 
 ---
 
@@ -55,7 +51,7 @@ Cuando un empleado no posee un vínculo activo, la aplicación informa:
 
 Cuando existe un vínculo activo, se muestra su descripción y el estado correspondiente.
 
-La información se obtiene desde el endpoint:
+La información se obtiene desde:
 
 `GET /api/Empleado`
 
@@ -76,13 +72,13 @@ El flujo implementado es:
 5. Confirmar la asignación.
 6. Enviar la información al BackendAPI.
 7. Registrar el nuevo vínculo.
-8. Actualizar automáticamente la información mostrada en la aplicación.
+8. Actualizar la información mostrada en la aplicación.
 
-Los vínculos disponibles son obtenidos mediante:
+Los vínculos disponibles se obtienen mediante:
 
 `GET /api/VinculoLaboral`
 
-La creación de la relación entre el empleado y el vínculo laboral se realiza mediante:
+La relación entre el empleado y el vínculo laboral se registra mediante:
 
 `POST /api/EmpleadoVinculoLaboral`
 
@@ -96,9 +92,7 @@ Después de una asignación correcta, el empleado pasa a mostrar el vínculo sel
 
 La aplicación permite anular el vínculo laboral activo de un empleado.
 
-Cuando el empleado posee un vínculo activo, se muestra el botón:
-
-**Anular vínculo**
+Cuando el empleado posee un vínculo activo, se muestra el botón **Anular vínculo**.
 
 La operación se realiza mediante:
 
@@ -110,7 +104,7 @@ El BackendAPI modifica:
 
 - `evl_anulado = true`
 - `evl_estado = false`
-- fecha de modificación del registro.
+- Fecha de modificación del registro.
 
 Después de realizar la operación, la aplicación vuelve a consultar los datos y el empleado pasa a mostrarse como:
 
@@ -142,13 +136,11 @@ Actualmente el sistema permite realizar el siguiente circuito:
 
 `Empleado → Consultar vínculo → Asignar vínculo → Activar vínculo → Anular vínculo → Sin vínculo`
 
-Esto permite demostrar la comunicación completa entre la aplicación móvil, el BackendAPI y la persistencia de los datos.
+Esto permite demostrar la comunicación entre la aplicación móvil, el BackendAPI y la persistencia de los datos.
 
 ---
 
 ## Arquitectura actual
-
-El proyecto se encuentra dividido principalmente en:
 
 ### Frontend móvil
 
@@ -288,9 +280,11 @@ Actualmente se encuentran implementadas y probadas las funcionalidades de:
 - Asignación de un vínculo laboral.
 - Persistencia de la asignación mediante el BackendAPI.
 - Anulación lógica de un vínculo laboral.
-- Actualización automática de la información después de una operación.
+- Actualización de la información después de una operación.
 
-La modificación de vínculos laborales queda pendiente para la siguiente etapa.
+### Feature pendiente
+
+- Modificación del vínculo laboral desde la aplicación móvil.
 
 ---
 
