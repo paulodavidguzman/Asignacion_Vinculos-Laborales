@@ -3,17 +3,27 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
-  View,
+  TextInput,
+  View
 } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import * as ImagePicker from 'expo-image-picker';
+import { Image } from 'react-native';
+
+
 
 import {
   anularVinculoLaboral,
   asignarVinculoLaboral,
   getEmpleados,
+  modificarVinculoLaboral,
 } from '../services/empleadoService';
+
 
 import { getVinculosLaborales } from '../services/vinculoLaboralService';
 
@@ -22,12 +32,23 @@ export default function HomeScreen() {
   const [empleados, setEmpleados] = useState<any[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [busqueda, setBusqueda] = useState('');
+  const [fotoSeleccionada, setFotoSeleccionada] =
+  useState<string | null>(null);
 
   const [empleadoSeleccionado, setEmpleadoSeleccionado] =
     useState<any>(null);
 
   const [vinculoSeleccionado, setVinculoSeleccionado] =
     useState<any>(null);
+
+    
+const [empleadoEnEdicion, setEmpleadoEnEdicion] =
+  useState<any>(null);
+
+const [vinculoEnEdicion, setVinculoEnEdicion] =
+  useState<number | null>(null);
+
 
   useEffect(() => {
     cargarDatos();
@@ -53,6 +74,32 @@ export default function HomeScreen() {
       setCargando(false);
     }
   };
+  
+const seleccionarFoto = async () => {
+  try {
+    const permiso =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permiso.granted) {
+      setError('Se necesita permiso para acceder a las fotografías.');
+      return;
+    }
+
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!resultado.canceled && resultado.assets.length > 0) {
+      setFotoSeleccionada(resultado.assets[0].uri);
+    }
+  } catch (error) {
+    console.error('Error al seleccionar fotografía:', error);
+    setError('No se pudo abrir la galería.');
+  }
+};
+
 
   const confirmarAsignacion = async () => {
     if (!empleadoSeleccionado || !vinculoSeleccionado) {
@@ -95,6 +142,81 @@ export default function HomeScreen() {
     console.error('Error al anular vínculo:', error);
   }
 };
+
+const confirmarModificacion = async () => {
+  if (!empleadoEnEdicion?.evl_id || vinculoEnEdicion === null) {
+    return;
+  }
+
+  try {
+    const fechaDesde = empleadoEnEdicion.evl_fecha_desde;
+
+    if (!fechaDesde) {
+      setError('El vínculo no tiene una fecha de inicio válida.');
+      return;
+    }
+
+    await modificarVinculoLaboral(
+      empleadoEnEdicion.evl_id,
+      vinculoEnEdicion,
+      empleadoEnEdicion.evl_temporal ?? false,
+      fechaDesde,
+      empleadoEnEdicion.evl_fecha_hasta ?? null
+    );
+
+    setEmpleadoEnEdicion(null);
+    setVinculoEnEdicion(null);
+
+    await cargarDatos();
+  } catch (error) {
+    console.error('Error al modificar vínculo:', error);
+    setError('No se pudo modificar el vínculo laboral.');
+  }
+};
+
+
+const compartirEmpleado = async (empleado: any) => {
+  try {
+    const nombre = `${empleado.emp_apellido} ${empleado.emp_nombre}`;
+
+    const vinculo = empleado.vinculo || 'Sin vínculo asignado';
+
+    const estado =
+      empleado.estado === true
+        ? 'Activo'
+        : empleado.estado === false
+          ? 'Pendiente'
+          : 'Sin vínculo';
+
+    const mensaje =
+      `Empleado: ${nombre}\n` +
+      `DNI: ${empleado.emp_nrodocumento}\n` +
+      `Vínculo laboral: ${vinculo}\n` +
+      `Estado: ${estado}`;
+
+    await Share.share({
+      message: mensaje,
+      title: 'Información del vínculo laboral',
+    });
+  } catch (error) {
+    console.error('Error al compartir empleado:', error);
+  }
+};
+
+const empleadosFiltrados = empleados.filter((empleado) => {
+  const texto = busqueda.toLowerCase().trim();
+
+  const nombre = String(empleado.emp_nombre ?? '').toLowerCase();
+  const apellido = String(empleado.emp_apellido ?? '').toLowerCase();
+  const dni = String(empleado.emp_nrodocumento ?? '');
+
+  return (
+    nombre.includes(texto) ||
+    apellido.includes(texto) ||
+    dni.includes(texto) ||
+    `${apellido} ${nombre}`.includes(texto)
+  );
+});
 
   return (
     <SafeAreaView style={styles.container}>
@@ -174,14 +296,53 @@ export default function HomeScreen() {
               Empleados
             </Text>
 
-            {empleados.length === 0 ? (
+            
+<View style={styles.card}>
+  <Text style={styles.cardTitle}>
+    Fotografía desde la galería
+  </Text>
+
+  <Pressable
+    style={styles.btnAsignar}
+    onPress={seleccionarFoto}
+  >
+    <Text style={styles.btnAsignarTexto}>
+      Seleccionar fotografía
+    </Text>
+  </Pressable>
+
+  {fotoSeleccionada && (
+    <Image
+      source={{ uri: fotoSeleccionada }}
+      style={{
+        width: 160,
+        height: 160,
+        borderRadius: 10,
+        marginTop: 15,
+        alignSelf: 'center',
+      }}
+      resizeMode="cover"
+    />
+  )}
+</View>
+
+
+            <TextInput
+  style={styles.inputBusqueda}
+  placeholder="Buscar por nombre, apellido o DNI"
+  value={busqueda}
+  onChangeText={setBusqueda}
+  autoCapitalize="none"
+/>
+
+            {empleadosFiltrados.length === 0 ? (
               <View style={styles.card}>
                 <Text style={styles.cardText}>
                   No se encontraron empleados.
                 </Text>
               </View>
             ) : (
-              empleados.map((empleado, index) => (
+              empleadosFiltrados.map((empleado, index) => (
                 <View
                   style={styles.card}
                   key={empleado.emp_id ?? index}
@@ -229,6 +390,23 @@ export default function HomeScreen() {
     </Text>
   </Pressable>
 )}
+
+{empleado.estado === true && empleado.evl_id != null && (
+  <Pressable
+    style={styles.btnModificar}
+    onPress={() => {
+      setEmpleadoSeleccionado(null);
+      setVinculoSeleccionado(null);
+      setEmpleadoEnEdicion(empleado);
+      setVinculoEnEdicion(empleado.vl_id);
+    }}
+  >
+    <Text style={styles.btnModificarTexto}>
+      Modificar vínculo
+    </Text>
+  </Pressable>
+)}
+
                   {empleado.estado === true && empleado.evl_id && (
   <Pressable
     style={styles.btnAnular}
@@ -239,6 +417,68 @@ export default function HomeScreen() {
     </Text>
   </Pressable>
 )}
+
+
+{/* BOTÓN COMPARTIR */}
+<Pressable
+  style={styles.btnCompartir}
+  onPress={() => compartirEmpleado(empleado)}
+>
+  <Text style={styles.btnCompartirTexto}>
+    Compartir información
+  </Text>
+</Pressable>
+
+
+{/* FORMULARIO DE MODIFICACIÓN */}
+{empleadoEnEdicion?.emp_id === empleado.emp_id && (
+  <View style={styles.formAsignacion}>
+    <Text style={styles.empleadoSeleccionado}>
+      Seleccione el nuevo vínculo laboral
+    </Text>
+
+    {vinculos.map((vinculo) => (
+      <Pressable
+        key={vinculo.vl_id}
+        style={[
+          styles.opcionVinculo,
+          vinculoEnEdicion === vinculo.vl_id &&
+            styles.opcionVinculoSeleccionada,
+        ]}
+        onPress={() => setVinculoEnEdicion(vinculo.vl_id)}
+      >
+        <Text style={styles.opcionVinculoTexto}>
+          {vinculo.vl_descripcion}
+        </Text>
+      </Pressable>
+    ))}
+    
+{vinculoEnEdicion !== null && (
+  <Pressable
+    style={styles.btnConfirmar}
+    onPress={confirmarModificacion}
+  >
+    <Text style={styles.btnConfirmarTexto}>
+      Confirmar modificación
+    </Text>
+  </Pressable>
+)}
+
+
+    <Pressable
+      style={styles.btnAnular}
+      onPress={() => {
+        setEmpleadoEnEdicion(null);
+        setVinculoEnEdicion(null);
+      }}
+    >
+      <Text style={styles.btnAnularTexto}>
+        Cancelar modificación
+      </Text>
+    </Pressable>
+  </View>
+)}
+
 
                   {/* FORMULARIO DE ASIGNACIÓN */}
                   {empleadoSeleccionado?.emp_id ===
@@ -459,4 +699,45 @@ btnAnularTexto: {
   fontSize: 16,
   fontWeight: 'bold',
 },
+inputBusqueda: {
+  backgroundColor: '#ffffff',
+  borderWidth: 1,
+  borderColor: '#cccccc',
+  borderRadius: 8,
+  padding: 12,
+  fontSize: 16,
+  marginBottom: 15,
+},
+
+
+btnModificar: {
+  backgroundColor: '#f0ad4e',
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+  marginTop: 10,
+  alignItems: 'center',
+},
+
+btnModificarTexto: {
+  color: '#ffffff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
+btnCompartir: {
+  backgroundColor: '#495057',
+  paddingVertical: 12,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+  marginTop: 10,
+  alignItems: 'center',
+},
+
+btnCompartirTexto: {
+  color: '#ffffff',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+
 });

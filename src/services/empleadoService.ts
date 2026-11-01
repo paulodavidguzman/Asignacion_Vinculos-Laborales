@@ -82,3 +82,41 @@ export async function anularVinculoLaboral(
 
   return texto ? JSON.parse(texto) : null;
 }
+
+
+
+export async function modificarVinculoLaboral(
+  evlId: number,
+  vlId: number,
+  temporal: boolean,
+  fechaDesde: string,
+  fechaHasta: string | null
+) {
+  const datosModificados = {
+    vl_id: vlId,
+    evl_temporal: temporal,
+    evl_fecha_desde: fechaDesde,
+    evl_fecha_hasta: fechaHasta,
+  };
+
+  const response = await fetch(
+    `${API_URL}/EmpleadoVinculoLaboral/${evlId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datosModificados),
+    }
+  );
+
+  if (!response.ok) {
+    const texto = await response.text();
+
+    throw new Error(
+      `Error HTTP ${response.status}: ${texto}`
+    );
+  }
+
+  return await response.json();
+}
