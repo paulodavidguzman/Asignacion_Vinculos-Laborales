@@ -1,295 +1,181 @@
 # Asignación de Vínculos Laborales
 
-## Descripción
+## Descripción del proyecto
 
-Aplicación móvil destinada a la gestión de los vínculos laborales de los empleados.
+Este proyecto consiste en una aplicación móvil para consultar empleados y administrar sus vínculos laborales.
 
-El sistema permite consultar empleados, visualizar el vínculo laboral asociado, asignar nuevos vínculos y realizar la anulación de vínculos existentes.
+La aplicación está desarrollada con React Native, Expo y TypeScript. Para guardar y consultar la información utilizamos una API desarrollada en ASP.NET Core, conectada a una base de datos SQL Server.
 
-El proyecto se desarrolla de manera incremental, incorporando funcionalidades a medida que avanza la cursada.
+Durante la cursada fuimos agregando funcionalidades y realizando pruebas para comprobar que las operaciones funcionaran correctamente.
 
 ## Integrantes
 
 - Guzmán Paulo David
 - Menozzi Camila Florencia
 
-## Features del proyecto
+## Funcionalidades desarrolladas
 
-De acuerdo con las pautas del proyecto ABP, una Feature representa una funcionalidad concreta que permite al usuario realizar una acción, consultar información o alcanzar un objetivo.
+Para el proyecto trabajamos sobre cuatro funcionalidades principales:
 
-El grupo cuenta con **2 integrantes**, por lo que el alcance mínimo esperado para la versión final es de **4 Features**.
-
-| # | Feature | Estado actual |
+| N.º | Funcionalidad | Estado |
 |---|---|---|
-| 1 | Listar empleados con sus vínculos laborales | ✅ Implementado |
-| 2 | Asignar vínculo laboral a empleado | ✅ Implementado |
-| 3 | Anular vínculo laboral del empleado | ✅ Implementado |
-| 4 | Modificar vínculo laboral del empleado | ⏳ Pendiente |
+| 1 | Consultar empleados y sus vínculos laborales | Terminada |
+| 2 | Asignar un vínculo laboral | Terminada |
+| 3 | Anular un vínculo laboral | Terminada |
+| 4 | Modificar un vínculo laboral | Terminada |
 
----
+### 1. Consulta de empleados
 
-## Estado de avance
+Al ingresar a la aplicación se muestra un listado de empleados con su nombre, apellido, DNI y vínculo laboral.
 
-### 1. Listar empleados con sus vínculos laborales
+También se puede ver si el empleado tiene un vínculo activo o si actualmente no tiene ninguno asignado.
 
-**Estado: Implementado**
-
-La aplicación móvil consulta los empleados registrados mediante el BackendAPI y muestra la información correspondiente a cada empleado.
-
-Actualmente se visualizan:
-
-- Nombre y apellido.
-- DNI.
-- Vínculo laboral actual.
-- Estado del vínculo.
-
-Cuando un empleado no posee un vínculo activo, la aplicación informa:
-
-**Vínculo: Sin vínculo asignado**
-
-**Estado: Sin vínculo**
-
-Cuando existe un vínculo activo, se muestra su descripción y el estado correspondiente.
-
-La información se obtiene desde:
+Para obtener esta información utilizamos:
 
 `GET /api/Empleado`
 
----
+Además, agregamos un buscador para encontrar empleados por nombre, apellido o DNI.
 
-### 2. Asignar vínculo laboral a empleado
+### 2. Asignación de vínculos laborales
 
-**Estado: Implementado**
+Cuando un empleado no tiene un vínculo activo, se puede seleccionar la opción para asignarle uno.
 
-La aplicación permite seleccionar un empleado que actualmente no posee un vínculo laboral activo y asignarle uno de los tipos de vínculos disponibles.
+La aplicación muestra los tipos de vínculos disponibles y permite elegir el correspondiente.
 
-El flujo implementado es:
-
-1. Consultar los empleados.
-2. Identificar un empleado sin vínculo.
-3. Presionar el botón **Asignar**.
-4. Seleccionar un vínculo laboral.
-5. Confirmar la asignación.
-6. Enviar la información al BackendAPI.
-7. Registrar el nuevo vínculo.
-8. Actualizar la información mostrada en la aplicación.
-
-Los vínculos disponibles se obtienen mediante:
+Para consultar los tipos de vínculos utilizamos:
 
 `GET /api/VinculoLaboral`
 
-La relación entre el empleado y el vínculo laboral se registra mediante:
+Para registrar la asignación utilizamos:
 
 `POST /api/EmpleadoVinculoLaboral`
 
-Después de una asignación correcta, el empleado pasa a mostrar el vínculo seleccionado y su estado como **Activo**.
+Una vez realizada la operación, se actualiza el listado y se muestra el vínculo asignado.
 
----
+### 3. Anulación de vínculos
 
-### 3. Anular vínculo laboral del empleado
-
-**Estado: Implementado**
-
-La aplicación permite anular el vínculo laboral activo de un empleado.
-
-Cuando el empleado posee un vínculo activo, se muestra el botón **Anular vínculo**.
+También implementamos la posibilidad de anular un vínculo laboral.
 
 La operación se realiza mediante:
 
 `PUT /api/EmpleadoVinculoLaboral/anular/{id}`
 
-La anulación utiliza una baja lógica. El registro no se elimina físicamente de la base de datos.
+En este caso no se elimina el registro de la base de datos, sino que se modifica su estado.
 
-El BackendAPI modifica:
+Después de anularlo, el empleado vuelve a aparecer sin vínculo activo y puede recibir una nueva asignación.
 
-- `evl_anulado = true`
-- `evl_estado = false`
-- Fecha de modificación del registro.
+### 4. Modificación de vínculos
 
-Después de realizar la operación, la aplicación vuelve a consultar los datos y el empleado pasa a mostrarse como:
+Esta fue una de las funcionalidades que completamos después del primer parcial.
 
-**Vínculo: Sin vínculo asignado**
+Permite cambiar el vínculo laboral que tiene asignado un empleado por otro de los disponibles.
 
-**Estado: Sin vínculo**
-
-También vuelve a habilitarse la opción **Asignar**, permitiendo registrar posteriormente un nuevo vínculo laboral.
-
----
-
-### 4. Modificar vínculo laboral del empleado
-
-**Estado: Pendiente**
-
-El BackendAPI dispone actualmente de una operación para modificar un registro existente:
+Para realizar el cambio utilizamos:
 
 `PUT /api/EmpleadoVinculoLaboral/{id}`
 
-Esta operación permite actualizar información correspondiente al vínculo laboral.
+Después de guardar la modificación, la aplicación vuelve a mostrar los datos actualizados.
 
-La integración completa de esta funcionalidad con la aplicación móvil queda pendiente para una siguiente etapa del desarrollo.
+Probamos esta operación tanto durante el desarrollo como desde el celular Android.
 
----
+## Mejoras realizadas para el segundo parcial
 
-## Flujo funcional implementado
+Además de completar la modificación de vínculos, trabajamos sobre algunos puntos que habían quedado pendientes en la primera entrega.
 
-Actualmente el sistema permite realizar el siguiente circuito:
+### Buscador de empleados
 
-`Empleado → Consultar vínculo → Asignar vínculo → Activar vínculo → Anular vínculo → Sin vínculo`
+Agregamos un campo de texto para buscar empleados por nombre, apellido o DNI, sin tener que recorrer todo el listado.
 
-Esto permite demostrar la comunicación entre la aplicación móvil, el BackendAPI y la persistencia de los datos.
+### Selección de fotografías
 
----
+Incorporamos un botón que permite seleccionar una fotografía de la galería del celular y mostrarla dentro de la aplicación.
 
-## Arquitectura actual
+Para esta función utilizamos `expo-image-picker`.
 
-### Frontend móvil
+### Compartir información
 
-Desarrollado utilizando:
+Agregamos una opción para compartir información utilizando la función `Share` de React Native.
+
+Al presionar el botón, Android muestra las aplicaciones disponibles para compartir.
+
+### Navegación
+
+Organizamos la aplicación en dos pestañas:
+
+- **Empleados:** muestra el listado y las opciones para administrar vínculos.
+- **Vínculos:** muestra los tipos de vínculos laborales disponibles.
+
+También reemplazamos la pantalla Explore que venía como ejemplo en Expo por contenido relacionado con nuestro proyecto.
+
+## Componentes utilizados
+
+Durante el desarrollo trabajamos con distintos componentes y recursos de React Native, entre ellos:
+
+- `View` y `Text` para mostrar la información.
+- `TextInput` para el buscador.
+- `Pressable` para los botones.
+- `StyleSheet` para los estilos.
+- `Image` para mostrar fotografías.
+- `SafeAreaView` y el manejo de áreas seguras.
+- `ThemeProvider` para el tema de la aplicación.
+- `fetch` para consultar la API.
+- `Share` para compartir información.
+- Expo Router para la navegación.
+
+## Tecnologías utilizadas
+
+**Aplicación móvil**
 
 - React Native
 - Expo
 - TypeScript
 - Expo Router
 
-La aplicación móvil consume los endpoints proporcionados por el BackendAPI.
-
-La comunicación con el backend se encuentra organizada mediante servicios, entre ellos:
-
-- `api.ts`
-- `empleadoService.ts`
-- `vinculoLaboralService.ts`
-
-### Backend
-
-Desarrollado utilizando:
+**Backend**
 
 - ASP.NET Core
 - .NET 8
 - Entity Framework Core
 - API REST
-- Swagger
 
-El backend contiene los controladores responsables de recibir las solicitudes realizadas desde la aplicación móvil y ejecutar las operaciones correspondientes.
+**Base de datos**
 
-Entre los principales endpoints utilizados actualmente se encuentran:
+- SQL Server
 
-`GET /api/Empleado`
+La aplicación móvil se comunica con el backend mediante solicitudes HTTP. El backend se encarga de consultar y modificar la información almacenada en la base de datos.
 
-`GET /api/VinculoLaboral`
+Para organizar las consultas utilizamos archivos de servicios como `api.ts`, `empleadoService.ts` y `vinculoLaboralService.ts`.
 
-`POST /api/EmpleadoVinculoLaboral`
+## Tipos de vínculos laborales
 
-`PUT /api/EmpleadoVinculoLaboral/{id}`
-
-`PUT /api/EmpleadoVinculoLaboral/anular/{id}`
-
-### Base de datos
-
-El sistema utiliza **SQL Server** como motor de base de datos.
-
-Entity Framework Core permite realizar la comunicación entre el BackendAPI y la base de datos.
-
----
-
-## Modelo funcional
-
-Las principales entidades utilizadas por el sistema son:
-
-### Empleado
-
-Contiene los datos correspondientes al empleado.
-
-### Vínculo Laboral
-
-Representa los diferentes tipos de vínculos que pueden asignarse a los empleados.
-
-Actualmente se utilizan, entre otros:
+Los tipos de vínculos que utilizamos en las pruebas son:
 
 - Media Jornada
 - Jornada Completa
 - Jornada Extendida
 
-### EmpleadoVínculoLaboral
+Estos datos se consultan desde el backend.
 
-Representa la relación entre un empleado y su vínculo laboral.
+## Pruebas realizadas
 
-Permite almacenar información como:
+Durante el desarrollo probamos las operaciones de consulta, asignación, modificación y anulación de vínculos laborales.
 
-- Empleado.
-- Tipo de vínculo.
-- Fecha desde.
-- Fecha hasta.
-- Temporalidad.
-- Estado.
-- Anulación.
-- Fecha de modificación.
+También ejecutamos la aplicación en un celular Android utilizando Expo Go.
 
----
+Desde el celular pudimos comprobar que:
 
-## Integración del sistema
+- La aplicación abre correctamente.
+- Se muestra el listado de empleados obtenido desde la API.
+- Se puede modificar un vínculo laboral.
+- Se puede seleccionar una fotografía de la galería y visualizarla.
+- Funciona el menú de compartir de Android.
 
-La arquitectura utilizada actualmente puede representarse de la siguiente manera:
+Estas pruebas nos permitieron verificar que las funciones incorporadas también funcionan fuera del navegador.
 
-`Aplicación móvil (React Native + Expo)`
+## Estado del proyecto
 
-↓
+Para esta segunda entrega completamos las cuatro funcionalidades principales que habíamos planteado.
 
-`Servicios TypeScript / Fetch`
+También incorporamos las mejoras de interfaz, búsqueda, navegación y funciones del dispositivo que fuimos trabajando durante la cursada.
 
-↓
-
-`BackendAPI ASP.NET Core`
-
-↓
-
-`Entity Framework Core`
-
-↓
-
-`SQL Server`
-
-La aplicación móvil no accede directamente a la base de datos. Todas las operaciones se realizan a través del BackendAPI.
-
----
-
-## Prueba funcional realizada
-
-Durante el desarrollo se verificó el siguiente escenario:
-
-1. Consultar un empleado sin vínculo laboral.
-2. Presionar **Asignar**.
-3. Seleccionar un vínculo laboral.
-4. Confirmar la operación.
-5. Verificar que el empleado figure con el vínculo seleccionado.
-6. Verificar que el estado figure como **Activo**.
-7. Presionar **Anular vínculo**.
-8. Verificar que el vínculo sea anulado mediante baja lógica.
-9. Actualizar los datos.
-10. Verificar que el empleado vuelva a figurar como **Sin vínculo**.
-
-La prueba permitió comprobar la comunicación entre frontend móvil, BackendAPI y base de datos.
-
----
-
-## Estado actual del proyecto
-
-Actualmente se encuentran implementadas y probadas las funcionalidades de:
-
-- Consulta de empleados y vínculos laborales.
-- Visualización del estado actual del vínculo.
-- Asignación de un vínculo laboral.
-- Persistencia de la asignación mediante el BackendAPI.
-- Anulación lógica de un vínculo laboral.
-- Actualización de la información después de una operación.
-
-### Feature pendiente
-
-- Modificación del vínculo laboral desde la aplicación móvil.
-
----
-
-## Objetivo del proyecto
-
-Desarrollar progresivamente una aplicación que permita gestionar los vínculos laborales de los empleados de manera organizada, facilitando la consulta, asignación, modificación y anulación de dichos vínculos.
-
-El desarrollo se realiza de forma incremental, incorporando los contenidos trabajados durante la cursada y registrando el avance de cada Feature.
+Es un proyecto que solamente se utilizo y utiliza para las materias laboratorio1 y laboratorio 2.
